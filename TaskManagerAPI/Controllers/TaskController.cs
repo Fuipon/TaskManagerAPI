@@ -1,113 +1,87 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using TaskManagerAPI.Data;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using TaskManagerAPI.BusinessLogic;
 using TaskManagerAPI.DTOs;
 using TaskManagerAPI.Models;
-
 
 namespace TaskManagerAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-
     public class TaskController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public TaskController(AppDbContext context)
-        { 
-            _context = context; 
+        private readonly ITaskService _taskService;
+
+        public TaskController(ITaskService taskService)
+        {
+            _taskService = taskService;
         }
 
-        /// <summary>   
-        /// Получить список всех задач
-        /// </summary>
+        /// <summary>Получить список всех задач</summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskItemDTO>>> GetTasks()
+        public async Task<IActionResult> GetTasks()
         {
-            return await _context.Tasks
-                .Select(t => new TaskItemDTO
-                {
-                    Id = t.Id,
-                    Title = t.Title,
-                    Description = t.Description,
-                    IsCompleted = t.IsCompleted,
-                })
-                .ToListAsync();
+            var tasks = await _taskService.GetAllTasksAsync();
+            return Ok(tasks);
         }
-        /// <summary>
-        /// Получить конкретную задачу
-        /// </summary>
+
+        /// <summary>Получить конкретную задачу</summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<TaskItemDTO>> GetTask(int id)
+        public async Task<IActionResult> GetTask(int id)
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
-                return NotFound();
-
-            return new TaskItemDTO
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted
-            };
+            var task = await _taskService.GetTaskByIdAsync(id);
+            if (task == null) return NotFound();
+            return Ok(task);
         }
 
-        /// <summary>
-        /// Создать задачу
-        /// </summary>
+        /// <summary>Создать задачу</summary>
         [HttpPost]
-        public async Task<ActionResult<TaskItemDTO>> CreateTask(TaskItemDTO dto)
+        public async Task<IActionResult> CreateTask(TaskItemDTO dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var task = new TaskItem
             {
                 Title = dto.Title,
                 Description = dto.Description,
-                IsCompleted = dto.IsCompleted,
-                CreatedAt = DateTime.UtcNow
+                IsCompleted = dto.IsCompleted
             };
 
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-
-            dto.Id = task.Id;
-            return CreatedAtAction(nameof(GetTask), new { id = task.Id }, dto);
+            var created = await _taskService.CreateTaskAsync(task);
+            return CreatedAtAction(nameof(GetTask), new { id = created.Id }, created);
         }
 
-        /// <summary>
-        /// Заменить задачу
-        /// </summary>
+        /// <summary>Обновить задачу</summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, TaskItemDTO dto)
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
-                return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            task.Title = dto.Title;
-            task.Description = dto.Description;
-            task.IsCompleted = dto.IsCompleted;
+            var task = new TaskItem
+            {
+                Id = id,
+                Title = dto.Title,
+                Description = dto.Description,
+                IsCompleted = dto.IsCompleted
+            };
 
-            await _context.SaveChangesAsync();
+            var updated = await _taskService.UpdateTaskAsync(task);
+            if (!updated) return NotFound();
+
             return NoContent();
         }
 
-        /// <summary>
-        /// Удалить задачу
-        /// </summary>
+        /// <summary>Удалить задачу</summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
-                return NotFound();
+            var deleted = await _taskService.DeleteTaskAsync(id);
+            if (!deleted) return NotFound();
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return NoContent(); // стандартный ответ для DELETE
         }
-
     }
 }
+    

@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using TaskManagerAPI.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TaskManagerAPI.BusinessLogic;
+using TaskManagerAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 // Подключаем EF Core
@@ -27,6 +28,8 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
+
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 builder.Services.AddAuthorization();
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TaskManagerAPI.Exceptions
+namespace TaskManagerAPI.Middleware.Exceptions
 {
     public class ValidationException : Exception
     {

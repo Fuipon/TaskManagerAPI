@@ -1,63 +1,64 @@
-﻿namespace TaskManagerAPI.BusinessLogic;
+﻿using TaskManagerAPI.Models;
+using TaskManagerAPI.Repositories;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-using Microsoft.EntityFrameworkCore;
-using TaskManagerAPI.Data;
-using TaskManagerAPI.Exceptions;
-using TaskManagerAPI.Models;
-
-
-
-
-public class TaskService : ITaskService
+namespace TaskManagerAPI.BusinessLogic
 {
-    private readonly AppDbContext _context;
-
-    public TaskService(AppDbContext context)
+    public class TaskService : ITaskService
     {
-        _context = context;
-    }
+        private readonly IUnitOfWork _unitOfWork;
 
-    public async Task<IEnumerable<TaskItem>> GetAllTasksAsync()
-    {
-        return await _context.Tasks.ToListAsync();
-    }
+        public TaskService(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
 
-    public async Task<TaskItem> GetTaskByIdAsync(int id)
-    {
-        var task = await _context.Tasks.FindAsync(id);
-        if (task == null)
-            throw new NotFoundException($"Задача с Id={id} не найдена.");
+        public async Task<IEnumerable<TaskItem>> GetAllTasksAsync()
+        {
+            return await _unitOfWork.Tasks.GetAllAsync();
+        }
 
-        return task;
-    }
+        public async Task<TaskItem> GetTaskByIdAsync(int id)
+        {
+            return await _unitOfWork.Tasks.GetByIdAsync(id);
+        }
 
-    public async Task<TaskItem> CreateTaskAsync(TaskItem task)
-    {
-        _context.Tasks.Add(task);
-        await _context.SaveChangesAsync();
-        return task;
-    }
+        public async Task<TaskItem> CreateTaskAsync(TaskItem task)
+        {
+            await _unitOfWork.Tasks.AddAsync(task);
+            await _unitOfWork.SaveChangesAsync();
+            return task;
+        }
 
-    public async Task<bool> UpdateTaskAsync(TaskItem task)
-    {
-        var existing = await _context.Tasks.FindAsync(task.Id);
-        if (existing == null) return false;
+        public async Task<bool> UpdateTaskAsync(int id, TaskItem task)
+        {
+            var existingTask = await _unitOfWork.Tasks.GetByIdAsync(id);
 
-        existing.Title = task.Title;
-        existing.Description = task.Description;
-        existing.IsCompleted = task.IsCompleted;
+            if (existingTask == null)
+                return false;
 
-        await _context.SaveChangesAsync();
-        return true;
-    }
+            existingTask.Title = task.Title;
+            existingTask.Description = task.Description;
+            existingTask.IsCompleted = task.IsCompleted;
 
-    public async Task<bool> DeleteTaskAsync(int id)
-    {
-        var task = await _context.Tasks.FindAsync(id);
-        if (task == null) return false;
+            _unitOfWork.Tasks.Update(existingTask);
+            await _unitOfWork.SaveChangesAsync();
 
-        _context.Tasks.Remove(task);
-        await _context.SaveChangesAsync();
-        return true;
+            return true;
+        }
+
+        public async Task<bool> DeleteTaskAsync(int id)
+        {
+            var existingTask = await _unitOfWork.Tasks.GetByIdAsync(id);
+
+            if (existingTask == null)
+                return false;
+
+            _unitOfWork.Tasks.Delete(existingTask);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

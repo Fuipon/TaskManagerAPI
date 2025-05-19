@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskManagerAPI.BusinessLogic;
 using TaskManagerAPI.Data;
+using TaskManagerAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 // Подключаем EF Core
@@ -31,6 +32,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<ITaskService, TaskService>();
 
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 builder.Services.AddAuthorization();
 
@@ -43,6 +47,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseMiddleware<TaskManagerAPI.Middleware.ErrorHandlingMiddleware>();
+
+
+
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");
 

@@ -4,7 +4,7 @@ using System;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TaskManagerAPI.Exceptions;
+using TaskManagerAPI.Middleware.Exceptions;
 
 namespace TaskManagerAPI.Middleware
 {

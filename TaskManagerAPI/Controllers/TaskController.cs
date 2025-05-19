@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using TaskManagerAPI.BusinessLogic;
 using TaskManagerAPI.DTOs;
+using TaskManagerAPI.Middleware.Exceptions;
 using TaskManagerAPI.Models;
 
 namespace TaskManagerAPI.Controllers
@@ -30,7 +31,7 @@ namespace TaskManagerAPI.Controllers
         public async Task<IActionResult> GetTask(int id)
         {
             var task = await _taskService.GetTaskByIdAsync(id);
-            if (task == null) return NotFound();
+            if (task == null) throw new NotFoundException("Задача не найдена");
             return Ok(task);
         }
 
@@ -67,7 +68,7 @@ namespace TaskManagerAPI.Controllers
                 IsCompleted = dto.IsCompleted
             };
 
-            var updated = await _taskService.UpdateTaskAsync(task);
+            var updated = await _taskService.UpdateTaskAsync(id, task);  // Передаём id и task отдельно
             if (!updated) return NotFound();
 
             return NoContent();
@@ -84,4 +85,3 @@ namespace TaskManagerAPI.Controllers
         }
     }
 }
-    

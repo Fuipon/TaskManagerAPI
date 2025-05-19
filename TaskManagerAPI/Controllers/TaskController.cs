@@ -11,7 +11,6 @@ namespace TaskManagerAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
 
     public class TaskController : ControllerBase
     {
@@ -27,22 +26,15 @@ namespace TaskManagerAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItemDTO>>> GetTasks()
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            var tasks = await _context.Tasks
-                .Where(t => t.User.Id == userId)
+            return await _context.Tasks
                 .Select(t => new TaskItemDTO
                 {
                     Id = t.Id,
                     Title = t.Title,
                     Description = t.Description,
-                    IsCompleted = t.IsCompleted
+                    IsCompleted = t.IsCompleted,
                 })
                 .ToListAsync();
-
-            return tasks;
         }
         /// <summary>
         /// Получить конкретную задачу
@@ -50,14 +42,7 @@ namespace TaskManagerAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskItemDTO>> GetTask(int id)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            var task = await _context.Tasks
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.Id == id && t.User.Id == userId);
-
+            var task = await _context.Tasks.FindAsync(id);
             if (task == null)
                 return NotFound();
 
@@ -76,21 +61,12 @@ namespace TaskManagerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<TaskItemDTO>> CreateTask(TaskItemDTO dto)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return Unauthorized();
-
             var task = new TaskItem
             {
                 Title = dto.Title,
                 Description = dto.Description,
                 IsCompleted = dto.IsCompleted,
-                CreatedAt = DateTime.UtcNow,
-                User = user
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Tasks.Add(task);
@@ -106,14 +82,7 @@ namespace TaskManagerAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, TaskItemDTO dto)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            var task = await _context.Tasks
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.Id == id && t.User.Id == userId);
-
+            var task = await _context.Tasks.FindAsync(id);
             if (task == null)
                 return NotFound();
 
@@ -131,32 +100,13 @@ namespace TaskManagerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            var task = await _context.Tasks
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.Id == id && t.User.Id == userId);
-
+            var task = await _context.Tasks.FindAsync(id);
             if (task == null)
                 return NotFound();
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
             return NoContent();
-        }
-
-        private int? GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return null;
-
-            if (int.TryParse(userIdClaim.Value, out int userId))
-                return userId;
-
-            return null;
         }
 
     }

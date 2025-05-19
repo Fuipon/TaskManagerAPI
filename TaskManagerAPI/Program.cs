@@ -5,8 +5,10 @@ using System.Text;
 using TaskManagerAPI.BusinessLogic;
 using TaskManagerAPI.Data;
 using TaskManagerAPI.Repositories;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Подключаем EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -42,14 +42,7 @@ namespace TaskManagerAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var task = new TaskItem
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                IsCompleted = dto.IsCompleted
-            };
-
-            var created = await _taskService.CreateTaskAsync(task);
+            var created = await _taskService.CreateTaskAsync(dto);
             return CreatedAtAction(nameof(GetTask), new { id = created.Id }, created);
         }
 
@@ -60,15 +53,7 @@ namespace TaskManagerAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var task = new TaskItem
-            {
-                Id = id,
-                Title = dto.Title,
-                Description = dto.Description,
-                IsCompleted = dto.IsCompleted
-            };
-
-            var updated = await _taskService.UpdateTaskAsync(id, task);  // Передаём id и task отдельно
+            var updated = await _taskService.UpdateTaskAsync(id, dto);
             if (!updated) return NotFound();
 
             return NoContent();

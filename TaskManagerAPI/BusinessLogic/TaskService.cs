@@ -1,63 +1,61 @@
-﻿using TaskManagerAPI.Models;
-using TaskManagerAPI.Repositories;
+﻿using AutoMapper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskManagerAPI.Models;
+using TaskManagerAPI.Repositories;
+using TaskManagerAPI.DTOs;
 
 namespace TaskManagerAPI.BusinessLogic
 {
     public class TaskService : ITaskService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public TaskService(IUnitOfWork unitOfWork)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<TaskItem>> GetAllTasksAsync()
+        public async Task<IEnumerable<TaskItemDTO>> GetAllTasksAsync()
         {
-            return await _unitOfWork.Tasks.GetAllAsync();
+            var tasks = await _unitOfWork.Tasks.GetAllAsync();
+            return _mapper.Map<IEnumerable<TaskItemDTO>>(tasks);
         }
 
-        public async Task<TaskItem> GetTaskByIdAsync(int id)
+        public async Task<TaskItemDTO> GetTaskByIdAsync(int id)
         {
-            return await _unitOfWork.Tasks.GetByIdAsync(id);
+            var task = await _unitOfWork.Tasks.GetByIdAsync(id);
+            return _mapper.Map<TaskItemDTO?>(task); ;
         }
 
-        public async Task<TaskItem> CreateTaskAsync(TaskItem task)
+        public async Task<TaskItemDTO> CreateTaskAsync(TaskItemDTO dto)
         {
+            var task = _mapper.Map<TaskItem>(dto);
             await _unitOfWork.Tasks.AddAsync(task);
             await _unitOfWork.SaveChangesAsync();
-            return task;
+            return _mapper.Map<TaskItemDTO>(task);
         }
 
-        public async Task<bool> UpdateTaskAsync(int id, TaskItem task)
+        public async Task<bool> UpdateTaskAsync(int id, TaskItemDTO dto)
         {
-            var existingTask = await _unitOfWork.Tasks.GetByIdAsync(id);
+            var task = await _unitOfWork.Tasks.GetByIdAsync(id);
+            if (task == null) return false;
 
-            if (existingTask == null)
-                return false;
-
-            existingTask.Title = task.Title;
-            existingTask.Description = task.Description;
-            existingTask.IsCompleted = task.IsCompleted;
-
-            _unitOfWork.Tasks.Update(existingTask);
+            _mapper.Map(dto, task); // Обновляем поля task из dto
+            _unitOfWork.Tasks.Update(task);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
 
         public async Task<bool> DeleteTaskAsync(int id)
         {
-            var existingTask = await _unitOfWork.Tasks.GetByIdAsync(id);
+            var task = await _unitOfWork.Tasks.GetByIdAsync(id);
+            if (task == null) return false;
 
-            if (existingTask == null)
-                return false;
-
-            _unitOfWork.Tasks.Delete(existingTask);
+            _unitOfWork.Tasks.Delete(task);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
     }

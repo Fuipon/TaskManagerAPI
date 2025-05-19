@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagerAPI.Data;
-using TaskManagerAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -29,7 +28,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>

@@ -31,6 +31,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<ITaskService, TaskService>();
 
+
 builder.Services.AddAuthorization();
 
 
@@ -41,7 +42,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<TaskManagerAPI.Middleware.ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");
 

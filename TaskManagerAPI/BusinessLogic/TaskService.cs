@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using TaskManagerAPI.Data;
+using TaskManagerAPI.Exceptions;
 using TaskManagerAPI.Models;
 
 
@@ -23,7 +24,11 @@ public class TaskService : ITaskService
 
     public async Task<TaskItem> GetTaskByIdAsync(int id)
     {
-        return await _context.Tasks.FindAsync(id);
+        var task = await _context.Tasks.FindAsync(id);
+        if (task == null)
+            throw new NotFoundException($"Задача с Id={id} не найдена.");
+
+        return task;
     }
 
     public async Task<TaskItem> CreateTaskAsync(TaskItem task)

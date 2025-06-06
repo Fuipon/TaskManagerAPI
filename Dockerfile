@@ -1,22 +1,25 @@
-﻿# Используем официальный образ .NET SDK для сборки
+﻿# Билдим на основе SDK
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
 
-# Копируем csproj и восстанавливаем зависимости
-COPY *.csproj ./
-RUN dotnet restore
+# Копируем .sln
+COPY TaskManagerApp.sln ./
 
-# Копируем остальные файлы и собираем приложение
-COPY . ./
-RUN dotnet publish -c Release -o out
+# Копируем проект
+COPY TaskManagerAPI/ ./TaskManagerAPI/
 
-# Используем официальный образ ASP.NET Core для запуска
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+# Восстанавливаем зависимости
+RUN dotnet restore "TaskManagerAPI/TaskManagerAPI.csproj"
+
+# Сборка проекта
+RUN dotnet publish "TaskManagerAPI/TaskManagerAPI.csproj" -c Release -o /publish
+
+# Рантайм-образ
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /publish .
 
-# Открываем порт
 EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
 
-# Запускаем приложение
 ENTRYPOINT ["dotnet", "TaskManagerAPI.dll"]

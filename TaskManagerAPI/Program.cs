@@ -60,7 +60,7 @@ app.UseMiddleware<TaskManagerAPI.Middleware.ErrorHandlingMiddleware>();
 
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");
 
 app.UseAuthorization();

@@ -1,23 +1,21 @@
-﻿# Билдим на основе SDK
+﻿# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
 
-# Копируем .sln
-COPY TaskManagerApp.sln ./
-
-# Копируем проект
+# Копируем sln и csproj
+COPY TaskManagerAPI.sln ./
 COPY TaskManagerAPI/ ./TaskManagerAPI/
 
 # Восстанавливаем зависимости
 RUN dotnet restore "TaskManagerAPI/TaskManagerAPI.csproj"
 
-# Сборка проекта
-RUN dotnet publish "TaskManagerAPI/TaskManagerAPI.csproj" -c Release -o /publish
+# Публикуем
+RUN dotnet publish "TaskManagerAPI/TaskManagerAPI.csproj" -c Release -o /app/publish
 
-# Рантайм-образ
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
 WORKDIR /app
-COPY --from=build /publish .
+COPY --from=build /app/publish .
 
 EXPOSE 80
 ENV ASPNETCORE_URLS=http://+:80

@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -5,13 +6,16 @@ using System.Text;
 using TaskManagerAPI.BusinessLogic;
 using TaskManagerAPI.Data;
 using TaskManagerAPI.Repositories;
-using AutoMapper;
+using TaskManagerAPI.Seeders;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Подключаем EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -57,6 +61,8 @@ app.UseCors("AllowBlazorClient");
 
 app.UseAuthorization();
 
-app.MapControllers();   
+app.MapControllers();
+
+DbSeeder.Seed(app.Services);
 
 app.Run();

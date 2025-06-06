@@ -13,10 +13,13 @@ using TaskManagerAPI.Seeders;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Подключаем EF Core
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.WebHost.UseUrls("http://0.0.0.0:10000");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+
+//builder.WebHost.UseUrls("http://0.0.0.0:10000");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

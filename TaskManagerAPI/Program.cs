@@ -16,6 +16,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.WebHost.UseUrls("http://0.0.0.0:10000");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

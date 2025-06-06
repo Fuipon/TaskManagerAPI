@@ -11,6 +11,11 @@ using TaskManagerAPI.Seeders;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080); // важно для Render
+});
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Подключаем EF Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

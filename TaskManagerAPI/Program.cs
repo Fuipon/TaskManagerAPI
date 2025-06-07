@@ -36,15 +36,16 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("ClientPolicy", policy =>
     {
         policy
-            .WithOrigins("https://taskmanagerclient-v1qs.onrender.com/")
+            .WithOrigins("https://taskmanagerclient-v1qs.onrender.com")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
     });
 });
+
 
 builder.Services.AddScoped<ITaskService, TaskService>();
 

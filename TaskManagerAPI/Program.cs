@@ -39,9 +39,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .WithOrigins("https://taskmanagerclient-v1qs.onrender.com/")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -65,8 +66,7 @@ app.UseMiddleware<TaskManagerAPI.Middleware.ErrorHandlingMiddleware>();
 
 
 //app.UseHttpsRedirection();
-app.UseCors("AllowBlazorClient");
-
+app.UseCors("ClientPolicy");
 app.UseAuthorization();
 
 app.MapControllers();
